@@ -336,9 +336,32 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
                 user_agent: str = "") -> Tuple[List[str], List[str]]:
   submission_endpoint = "ticket/pair" if use_pairing else "ticket/msa"
 
+  import hashlib
+  import base64
+  def gen_jobid(r):
+    # 创建 SHA224 哈希对象
+    h = hashlib.sha224()
+    # 将查询字符串和模式写入哈希对象
+    h.update(r['query'].encode('utf-8'))
+    h.update(r['Mode'].encode('utf-8'))
+    # 对数据库列表进行排序
+    database = sorted(r['Database'])
+    # 将排序后的数据库元素写入哈希对象
+    for value in database:
+        h.update(value.encode('utf-8'))
+    # 获取哈希结果的字节串
+    bs = h.digest()
+    # 使用 URL 安全的 Base64 编码将字节串转换为字符串并返回
+    return base64.urlsafe_b64encode(bs).decode('utf-8').rstrip('=')
+
   headers = {}
   # process input x
   seqs = [x] if isinstance(x, str) else x
+  # query
+  n, query = 101, ""
+  for seq in seqs:
+    query += f">{n}\n{seq}\n"
+    n += 1
 
   # compatibility to old option
   if filter is not None:
@@ -362,11 +385,10 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
       mode = mode + "-env"
 
   # define path
-  path = f"{prefix}_{mode}"
-  if not os.path.isdir(path): os.mkdir(path)
+  jobid = gen_jobid({"query":query,"Mode":mode, "Database":[]})
+  path = f"{prefix}/{jobid}"
 
-  tar_gz_file = f'{path}/out.tar.gz'
-  N,REDO = 101,True
+  if not os.path.isdir(path): os.mkdir(path)
 
   # deduplicate and keep track of order
   seqs_unique = []
@@ -379,11 +401,6 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
   else:
     a3m_files = [f"{path}/uniref.a3m"]
     if use_env: a3m_files.append(f"{path}/bfd.mgnify30.metaeuk30.smag30.a3m")
-
-  # extract a3m files
-  if any(not os.path.isfile(a3m_file) for a3m_file in a3m_files):
-    with tarfile.open(tar_gz_file) as tar_gz:
-      tar_gz.extractall(path)
 
   # templates
   if use_templates:

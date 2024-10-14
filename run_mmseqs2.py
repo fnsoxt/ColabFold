@@ -26,7 +26,7 @@ msa_mode = "mmseqs2_uniref"
     query_seqs_cardinality,
     template_features,
 ) = get_msa_and_templates_sync(
-    "test",
+    "/home/xukui/jobs/",
     Q60262,
     None,
     Path("."),
