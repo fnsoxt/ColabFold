@@ -729,7 +729,7 @@ def get_msa_and_templates_sync(
 ) -> Tuple[
     Optional[List[str]], Optional[List[str]], List[str], List[int], List[Dict[str, Any]]
 ]:
-    from colabfold.colabfold import run_mmseqs2
+    from colabfold.colabfold import run_mmseqs2_sync
 
     use_env = msa_mode == "mmseqs2_uniref_env" or msa_mode == "mmseqs2_uniref_env_envpair"
     use_envpair = msa_mode == "mmseqs2_uniref_env_envpair"
@@ -759,7 +759,7 @@ def get_msa_and_templates_sync(
                     a3m_lines.append(f">{num + i}\n{seq}")
 
             if a3m_lines is None:
-                a3m_lines_mmseqs2 = run_mmseqs2(
+                a3m_lines_mmseqs2 = run_mmseqs2_sync(
                     query_seqs_unique,
                     str(result_dir.joinpath(jobname)),
                     use_env,
@@ -773,7 +773,7 @@ def get_msa_and_templates_sync(
             for index in range(0, len(query_seqs_unique)):
                 template_paths[index] = custom_template_path
         else:
-            a3m_lines_mmseqs2, template_paths = run_mmseqs2(
+            a3m_lines_mmseqs2, template_paths = run_mmseqs2_sync(
                 query_seqs_unique,
                 str(result_dir.joinpath(jobname)),
                 use_env,
@@ -822,7 +822,7 @@ def get_msa_and_templates_sync(
                 a3m_lines.append(f">{num + i}\n{seq}")
         else:
             # find normal a3ms
-            a3m_lines = run_mmseqs2(
+            a3m_lines = run_mmseqs2_sync(
                 query_seqs_unique,
                 str(result_dir.joinpath(jobname)),
                 use_env,
@@ -838,7 +838,7 @@ def get_msa_and_templates_sync(
     ):
         # find paired a3m if not a homooligomers
         if len(query_seqs_unique) > 1:
-            paired_a3m_lines = run_mmseqs2(
+            paired_a3m_lines = run_mmseqs2_sync(
                 query_seqs_unique,
                 str(result_dir.joinpath(jobname)),
                 use_envpair,

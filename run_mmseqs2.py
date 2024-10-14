@@ -16,6 +16,7 @@ print(result)
 from pathlib import Path
 from colabfold.batch import get_msa_and_templates_sync
 
+host_url = 'http://localhost:8888'
 Q60262 = "MEIIALLIEEGIIIIKDKKVAERFLKDLESSQGMDWKEIRERAERAKKQLEEGIEWAKKTKL"
 msa_mode = "mmseqs2_uniref"
 (
@@ -33,7 +34,8 @@ msa_mode = "mmseqs2_uniref"
     False,
     None,
     "unpaired_paired",
-    "greedy"
+    "greedy",
+    host_url=host_url
 )
 print(unpaired_msa)
 print(paired_msa)
