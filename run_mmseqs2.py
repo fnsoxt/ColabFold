@@ -1,3 +1,8 @@
+'''
+msaserver/msa-server -cli -config msaserver/config.json -request '{"q": ">101\nMPKIIEAIYENGVFKPLQKVDLKEGE\n", "mode": "pairgreedy"}'
+msaserver/msa-server -cli -config msaserver/config.json -request '{"q": ">101\nMPKIIEAIYENGVFKPLQKVDLKEGE\n", "mode": "all"}'
+'''
+
 
 '''
 from colabfold.colabfold import run_mmseqs2
@@ -14,10 +19,11 @@ result = run_mmseqs2(query_seqs_unique, prefix, use_env, use_templates=False, us
 print(result)
 '''
 from pathlib import Path
-from colabfold.batch import get_msa_and_templates_sync
+from colabfold.batch import get_msa_and_templates, get_msa_and_templates_sync
 
 host_url = 'http://localhost:8888'
-Q60262 = "MEIIALLIEEGIIIIKDKKVAERFLKDLESSQGMDWKEIRERAERAKKQLEEGIEWAKKTKL"
+query_sequences = 'MPKIIEAIYENGVFKPLQKVDLKEGE'
+# query_sequences = "MEIIALLIEEGIIIIKDKKVAERFLKDLESSQGMDWKEIRERAERAKKQLEEGIEWAKKTKL"
 msa_mode = "mmseqs2_uniref"
 (
     unpaired_msa,
@@ -27,7 +33,7 @@ msa_mode = "mmseqs2_uniref"
     template_features,
 ) = get_msa_and_templates_sync(
     jobname="/home/xukui/jobs/",
-    query_sequences=Q60262,
+    query_sequences=query_sequences,
     a3m_lines=None,
     result_dir=Path("."),
     msa_mode=msa_mode,

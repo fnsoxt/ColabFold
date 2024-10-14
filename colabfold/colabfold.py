@@ -84,6 +84,7 @@ def run_mmseqs2(x, prefix, use_env=True, use_filter=True,
       query += f">{n}\n{seq}\n"
       n += 1
 
+    print("query: %s, mode: %s" % (query, mode))
     while True:
       error_count = 0
       try:
@@ -387,6 +388,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
 
   # define path
   jobid = gen_jobid({"query":query,"Mode":mode, "Database":[]})
+  print("jobid: %s" % jobid)
   path = f"{prefix}/{jobid}"
 
   if not os.path.isdir(path): os.mkdir(path)
