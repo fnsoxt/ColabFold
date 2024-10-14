@@ -14,7 +14,7 @@ result = run_mmseqs2(query_seqs_unique, prefix, use_env, use_templates=False, us
 print(result)
 '''
 from pathlib import Path
-from colabfold.batch import get_msa_and_templates
+from colabfold.batch import get_msa_and_templates_sync
 
 Q60262 = "MEIIALLIEEGIIIIKDKKVAERFLKDLESSQGMDWKEIRERAERAKKQLEEGIEWAKKTKL"
 msa_mode = "mmseqs2_uniref"
@@ -24,7 +24,7 @@ msa_mode = "mmseqs2_uniref"
     query_seqs_unique,
     query_seqs_cardinality,
     template_features,
-) = get_msa_and_templates(
+) = get_msa_and_templates_sync(
     "test",
     Q60262,
     None,

@@ -714,6 +714,156 @@ def pad_sequences(
             pos += 1
     return "\n".join(a3m_lines_combined)
 
+def get_msa_and_templates_sync(
+    jobname: str,
+    query_sequences: Union[str, List[str]],
+    a3m_lines: Optional[List[str]],
+    result_dir: Path,
+    msa_mode: str,
+    use_templates: bool,
+    custom_template_path: str,
+    pair_mode: str,
+    pairing_strategy: str = "greedy",
+    host_url: str = DEFAULT_API_SERVER,
+    user_agent: str = "",
+) -> Tuple[
+    Optional[List[str]], Optional[List[str]], List[str], List[int], List[Dict[str, Any]]
+]:
+    from colabfold.colabfold import run_mmseqs2
+
+    use_env = msa_mode == "mmseqs2_uniref_env" or msa_mode == "mmseqs2_uniref_env_envpair"
+    use_envpair = msa_mode == "mmseqs2_uniref_env_envpair"
+    if isinstance(query_sequences, str): query_sequences = [query_sequences]
+
+    # remove duplicates before searching
+    query_seqs_unique = []
+    for x in query_sequences:
+        if x not in query_seqs_unique:
+            query_seqs_unique.append(x)
+
+    # determine how many times is each sequence is used
+    query_seqs_cardinality = [0] * len(query_seqs_unique)
+    for seq in query_sequences:
+        seq_idx = query_seqs_unique.index(seq)
+        query_seqs_cardinality[seq_idx] += 1
+
+    # get template features
+    template_features = []
+    if use_templates:
+        # Skip template search when custom_template_path is provided
+        if custom_template_path is not None:
+            if msa_mode == "single_sequence":
+                a3m_lines = []
+                num = 101
+                for i, seq in enumerate(query_seqs_unique):
+                    a3m_lines.append(f">{num + i}\n{seq}")
+
+            if a3m_lines is None:
+                a3m_lines_mmseqs2 = run_mmseqs2(
+                    query_seqs_unique,
+                    str(result_dir.joinpath(jobname)),
+                    use_env,
+                    use_templates=False,
+                    host_url=host_url,
+                    user_agent=user_agent,
+                )
+            else:
+                a3m_lines_mmseqs2 = a3m_lines
+            template_paths = {}
+            for index in range(0, len(query_seqs_unique)):
+                template_paths[index] = custom_template_path
+        else:
+            a3m_lines_mmseqs2, template_paths = run_mmseqs2(
+                query_seqs_unique,
+                str(result_dir.joinpath(jobname)),
+                use_env,
+                use_templates=True,
+                host_url=host_url,
+                user_agent=user_agent,
+            )
+        if template_paths is None:
+            logger.info("No template detected")
+            for index in range(0, len(query_seqs_unique)):
+                template_feature = mk_mock_template(query_seqs_unique[index])
+                template_features.append(template_feature)
+        else:
+            for index in range(0, len(query_seqs_unique)):
+                if template_paths[index] is not None:
+                    template_feature = mk_template(
+                        a3m_lines_mmseqs2[index],
+                        template_paths[index],
+                        query_seqs_unique[index],
+                    )
+                    if len(template_feature["template_domain_names"]) == 0:
+                        template_feature = mk_mock_template(query_seqs_unique[index])
+                        logger.info(f"Sequence {index} found no templates")
+                    else:
+                        logger.info(
+                            f"Sequence {index} found templates: {template_feature['template_domain_names'].astype(str).tolist()}"
+                        )
+                else:
+                    template_feature = mk_mock_template(query_seqs_unique[index])
+                    logger.info(f"Sequence {index} found no templates")
+
+                template_features.append(template_feature)
+    else:
+        for index in range(0, len(query_seqs_unique)):
+            template_feature = mk_mock_template(query_seqs_unique[index])
+            template_features.append(template_feature)
+
+    if len(query_sequences) == 1:
+        pair_mode = "none"
+
+    if pair_mode == "none" or pair_mode == "unpaired" or pair_mode == "unpaired_paired":
+        if msa_mode == "single_sequence":
+            a3m_lines = []
+            num = 101
+            for i, seq in enumerate(query_seqs_unique):
+                a3m_lines.append(f">{num + i}\n{seq}")
+        else:
+            # find normal a3ms
+            a3m_lines = run_mmseqs2(
+                query_seqs_unique,
+                str(result_dir.joinpath(jobname)),
+                use_env,
+                use_pairing=False,
+                host_url=host_url,
+                user_agent=user_agent,
+            )
+    else:
+        a3m_lines = None
+
+    if msa_mode != "single_sequence" and (
+        pair_mode == "paired" or pair_mode == "unpaired_paired"
+    ):
+        # find paired a3m if not a homooligomers
+        if len(query_seqs_unique) > 1:
+            paired_a3m_lines = run_mmseqs2(
+                query_seqs_unique,
+                str(result_dir.joinpath(jobname)),
+                use_envpair,
+                use_pairing=True,
+                pairing_strategy=pairing_strategy,
+                host_url=host_url,
+                user_agent=user_agent,
+            )
+        else:
+            # homooligomers
+            num = 101
+            paired_a3m_lines = []
+            for i in range(0, query_seqs_cardinality[0]):
+                paired_a3m_lines.append(f">{num+i}\n{query_seqs_unique[0]}\n")
+    else:
+        paired_a3m_lines = None
+
+    return (
+        a3m_lines,
+        paired_a3m_lines,
+        query_seqs_unique,
+        query_seqs_cardinality,
+        template_features,
+    )
+
 def get_msa_and_templates(
     jobname: str,
     query_sequences: Union[str, List[str]],
