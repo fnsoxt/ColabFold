@@ -26,15 +26,15 @@ msa_mode = "mmseqs2_uniref"
     query_seqs_cardinality,
     template_features,
 ) = get_msa_and_templates_sync(
-    "/home/xukui/jobs/",
-    Q60262,
-    None,
-    Path("."),
-    msa_mode,
-    False,
-    None,
-    "unpaired_paired",
-    "greedy",
+    jobname="/home/xukui/jobs/",
+    query_sequences=Q60262,
+    a3m_lines=None,
+    result_dir=Path("."),
+    msa_mode=msa_mode,
+    use_templates=False,
+    custom_template_path=None,
+    pair_mode="unpaired_paired",
+    pairing_strategy="greedy",
     host_url=host_url
 )
 print(unpaired_msa)

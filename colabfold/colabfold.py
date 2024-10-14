@@ -355,10 +355,11 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
     return base64.urlsafe_b64encode(bs).decode('utf-8').rstrip('=')
 
   headers = {}
+  N = 101
   # process input x
   seqs = [x] if isinstance(x, str) else x
   # query
-  n, query = 101, ""
+  n, query = N, ""
   for seq in seqs:
     query += f">{n}\n{seq}\n"
     n += 1
@@ -418,6 +419,8 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
     template_paths = {}
     for k,TMPL in templates.items():
       TMPL_PATH = f"{prefix}_{mode}/templates_{k}"
+      print(TMPL_PATH)
+      exit()
       if not os.path.isdir(TMPL_PATH):
         os.mkdir(TMPL_PATH)
         TMPL_LINE = ",".join(TMPL[:20])
