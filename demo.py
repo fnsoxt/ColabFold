@@ -1,4 +1,6 @@
 '''
+pip install jaxlib==0.4.23,jax=0.4.23
+
 msaserver/msa-server -cli -config msaserver/config.json -request '{"q": ">101\nMPKIIEAIYENGVFKPLQKVDLKEGE\n", "mode": "pairgreedy"}'
 msaserver/msa-server -cli -config msaserver/config.json -request '{"q": ">101\nMPKIIEAIYENGVFKPLQKVDLKEGE\n", "mode": "all"}'
 '''

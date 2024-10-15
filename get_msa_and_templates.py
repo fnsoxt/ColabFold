@@ -5,6 +5,8 @@ host_url = 'http://localhost:8888'
 query_sequences = 'MPKIIEAIYENGVFKPLQKVDLKEGE'
 # query_sequences = "MEIIALLIEEGIIIIKDKKVAERFLKDLESSQGMDWKEIRERAERAKKQLEEGIEWAKKTKL"
 msa_mode = "mmseqs2_uniref"
+use_templates = True
+
 (
     unpaired_msa,
     paired_msa,
@@ -17,7 +19,7 @@ msa_mode = "mmseqs2_uniref"
     a3m_lines=None,
     result_dir=Path("."),
     msa_mode=msa_mode,
-    use_templates=False,
+    use_templates=use_templates,
     custom_template_path=None,
     pair_mode="unpaired_paired",
     pairing_strategy="greedy",

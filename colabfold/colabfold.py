@@ -420,9 +420,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
 
     template_paths = {}
     for k,TMPL in templates.items():
-      TMPL_PATH = f"{prefix}_{mode}/templates_{k}"
-      print(TMPL_PATH)
-      exit()
+      TMPL_PATH = f"{prefix}/{jobid}/templates_{k}"
       if not os.path.isdir(TMPL_PATH):
         os.mkdir(TMPL_PATH)
         TMPL_LINE = ",".join(TMPL[:20])
