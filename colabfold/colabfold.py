@@ -424,6 +424,10 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
       if not os.path.isdir(TMPL_PATH):
         os.mkdir(TMPL_PATH)
         TMPL_LINE = ",".join(TMPL[:20])
+        print("path:%s,name:%s" % (TMPL_PATH, TMPL_LINE))
+        exit()
+        # TODO 调用脚本执行生成template
+        '''
         response = None
         while True:
           error_count = 0
@@ -448,6 +452,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
         os.symlink("pdb70_a3m.ffindex", f"{TMPL_PATH}/pdb70_cs219.ffindex")
         with open(f"{TMPL_PATH}/pdb70_cs219.ffdata", "w") as f:
           f.write("")
+        '''
       template_paths[k] = TMPL_PATH
 
   # gather a3m lines
