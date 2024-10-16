@@ -5,6 +5,7 @@
 # imports
 ############################################
 import jax
+import json
 import requests
 import hashlib
 import tarfile
@@ -20,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.patheffects
 from matplotlib import collections as mcoll
+import subprocess
 
 import logging
 logger = logging.getLogger(__name__)
@@ -388,7 +390,14 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
 
   # define path
   jobid = gen_jobid({"query":query,"Mode":mode, "Database":[]})
-  print("jobid: %s" % jobid)
+  # print("jobid: %s" % jobid)
+  request = json.dumps({"q":query, "mode":mode}, separators=(',', ':'))
+  # 调用脚本执行文件生成
+  command = f"../msaserver/msa-server -cli -config ../msaserver/config.json -request {request}"
+  process = subprocess.run(command.split(), cwd=prefix, capture_output=True, text=True, shell=False)
+  if process.returncode != 0:
+    logger.error(f"command failed, {process.stderr}")
+
   path = f"{prefix}/{jobid}"
 
   if not os.path.isdir(path): os.mkdir(path)
@@ -426,11 +435,10 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
         TMPL_LINE = ",".join(TMPL[:20])
         print("path:%s,name:%s" % (TMPL_PATH, TMPL_LINE))
         # 调用脚本执行生成template
-        import subprocess
         command = f"{prefix}/../msaserver/msa-server -config {prefix}/../msaserver/config.json -template -name {TMPL_LINE}"
         process = subprocess.run(command.split(), cwd=TMPL_PATH, capture_output=True, text=True, shell=False)
         if process.returncode != 0:
-            logger.error(f"command failed, {process.stderr}")
+          logger.error(f"command failed, {process.stderr}")
         tar_gz_file = f'{TMPL_PATH}/templates.tar.gz'
         with tarfile.open(tar_gz_file) as tar_gz:
           tar_gz.extractall(TMPL_PATH)
