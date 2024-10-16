@@ -1145,6 +1145,8 @@ def get_msa_and_templates(
     )
 
 
+from colabfold.batch import get_msa_and_templates_sync
+
 def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_uniref_env", use_templates=True, 
                 custom_template_path=None, pair_mode="unpaired_paired"):
     ###########################################
@@ -1161,8 +1163,8 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
     try:
         if use_templates or a3m_lines is None:
             (unpaired_msa, paired_msa, query_seqs_unique, query_seqs_cardinality, template_features) \
-            = get_msa_and_templates(jobname, query_sequence, result_dir, msa_mode, use_templates, 
-                custom_template_path, pair_mode, host_url)
+            = get_msa_and_templates_sync(jobname, query_sequence, a3m_lines, result_dir=result_dir, msa_mode=msa_mode, use_templates=use_templates, 
+                custom_template_path=custom_template_path, pair_mode=pair_mode, host_url=host_url)
         if a3m_lines is not None:
             (unpaired_msa, paired_msa, query_seqs_unique, query_seqs_cardinality, template_features_) \
             = unserialize_msa(a3m_lines, query_sequence)
@@ -1204,5 +1206,6 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
 
 if __name__ == "__main__":
     query_sequence = 'MPKIIEAIYENGVFKPLQKVDLKEGE'
-    result_dir = Path(".")
-    run_mmf_MSAFt(query_sequence, result_dir)
+    result_dir="/home/xukui/jobs/"
+    jobname = ""
+    run_mmf_MSAFt(query_sequence, result_dir, jobname)
