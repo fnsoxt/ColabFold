@@ -50,7 +50,7 @@ from alphafold.data import (
 )
 from alphafold.data.tools import hhsearch
 
-DEFAULT_API_SERVER = "https://api.colabfold.com"
+# DEFAULT_API_SERVER = "https://api.colabfold.com"
 DEFAULT_API_SERVER = "http://127.0.0.1:8888"
 
 # from mmseqsfold.utils import (
@@ -1200,3 +1200,9 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
     except Exception as e:
         logger.exception(f"Could not generate input features {jobname}: {e}")
         return None
+
+
+if __name__ == "__main__":
+    query_sequence = 'MPKIIEAIYENGVFKPLQKVDLKEGE'
+    result_dir = Path(".")
+    run_mmf_MSAFt(query_sequence, result_dir)

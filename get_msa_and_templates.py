@@ -14,10 +14,10 @@ use_templates = True
     query_seqs_cardinality,
     template_features,
 ) = get_msa_and_templates_sync(
-    jobname="/home/xukui/jobs/",
+    jobname="",
     query_sequences=query_sequences,
     a3m_lines=None,
-    result_dir=Path("."),
+    result_dir=Path("/home/xukui/jobs/"),
     msa_mode=msa_mode,
     use_templates=use_templates,
     custom_template_path=None,
