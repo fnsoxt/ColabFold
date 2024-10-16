@@ -21,6 +21,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 from io import StringIO
+from hy36 import encode_chain_id
 
 import numpy as np
 import pandas
@@ -994,14 +995,14 @@ def generate_input_feature(
 
             # for each copy
             for cardinality in range(0, query_seqs_cardinality[sequence_index]):
-                features_for_chain[protein.encode_chain_id(chain_cnt)] = feature_dict
+                features_for_chain[encode_chain_id(chain_cnt)] = feature_dict
                 chain_cnt += 1
 
         if "ptm" in model_type:
-            input_feature = features_for_chain[protein.encode_chain_id(0)]
+            input_feature = features_for_chain[encode_chain_id(0)]
             input_feature["asym_id"] = np.zeros(input_feature["aatype"].shape[0],dtype=int)
             domain_names = {
-                protein.encode_chain_id(0): [
+                encode_chain_id(0): [
                     name.decode("UTF-8")
                     for name in input_feature["template_domain_names"]
                     if name != b"none"
