@@ -420,13 +420,23 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
 
     template_paths = {}
     for k,TMPL in templates.items():
-      TMPL_PATH = f"{prefix}/{jobid}/templates_{k}"
+      TMPL_PATH = f"{path}/templates_{k}"
       if not os.path.isdir(TMPL_PATH):
         os.mkdir(TMPL_PATH)
         TMPL_LINE = ",".join(TMPL[:20])
         print("path:%s,name:%s" % (TMPL_PATH, TMPL_LINE))
-        exit()
-        # TODO 调用脚本执行生成template
+        # 调用脚本执行生成template
+        import subprocess
+        command = f"{prefix}/../msaserver/msa-server -config {prefix}/../msaserver/config.json -template -name {TMPL_LINE}"
+        process = subprocess.run(command.split(), cwd=TMPL_PATH, capture_output=True, text=True, shell=False)
+        if process.returncode != 0:
+            logger.error(f"command failed, {process.stderr}")
+        tar_gz_file = f'{TMPL_PATH}/templates.tar.gz'
+        with tarfile.open(tar_gz_file) as tar_gz:
+          tar_gz.extractall(TMPL_PATH)
+        os.symlink("pdb70_a3m.ffindex", f"{TMPL_PATH}/pdb70_cs219.ffindex")
+        with open(f"{TMPL_PATH}/pdb70_cs219.ffdata", "w") as f:
+          f.write("")
         '''
         response = None
         while True:
