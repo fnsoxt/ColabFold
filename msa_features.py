@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 from io import StringIO
 from hy36 import encode_chain_id
+from colabfold.colabfold import gen_jobid
 
 import numpy as np
 import pandas
@@ -345,6 +346,39 @@ def run_mmseqs2(x, prefix, use_env=True, use_filter=True,
 
   return (a3m_lines, template_paths) if use_templates else a3m_lines
 
+def get_jobid(x, filter, use_env, use_filter, use_pairing, pairing_strategy) -> str:
+  N = 101
+  # process input x
+  seqs = [x] if isinstance(x, str) else x
+  # query
+  n, query = N, ""
+  for seq in seqs:
+    query += f">{n}\n{seq}\n"
+    n += 1
+
+  # compatibility to old option
+  if filter is not None:
+    use_filter = filter
+
+  # setup mode
+  if use_filter:
+    mode = "env" if use_env else "all"
+  else:
+    mode = "env-nofilter" if use_env else "nofilter"
+
+  if use_pairing:
+    use_templates = False
+    mode = ""
+    # greedy is default, complete was the previous behavior
+    if pairing_strategy == "greedy":
+      mode = "pairgreedy"
+    elif pairing_strategy == "complete":
+      mode = "paircomplete"
+    if use_env:
+      mode = mode + "-env"
+
+  # define path
+  return gen_jobid({"query":query,"Mode":mode, "Database":[]})
 
 
 def msa_to_str(
@@ -1161,6 +1195,9 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
     a3m_lines = None
     result_dir = Path(result_dir)
     # result_dir.mkdir(exist_ok=True)
+
+    jobid = get_jobid(query_sequence, filter=None, use_env=True, use_filter=True, use_pairing=False, pairing_strategy="greedy")
+    print("jobid: %s" % jobid)
     try:
         if use_templates or a3m_lines is None:
             (unpaired_msa, paired_msa, query_seqs_unique, query_seqs_cardinality, template_features) \
@@ -1173,7 +1210,7 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
 
         # save a3m
         msa = msa_to_str(unpaired_msa, paired_msa, query_seqs_unique, query_seqs_cardinality)
-        result_dir.joinpath(f"{jobname}_new.a3m").write_text(msa)
+        result_dir.joinpath(f"{jobid}/env_new.a3m").write_text(msa)
             
     except Exception as e:
         logger.exception(f"Could not get MSA/templates for {jobname}: {e}")
@@ -1191,7 +1228,7 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
         (feature_dict, domain_names) \
         = generate_input_feature(query_seqs_unique, query_seqs_cardinality, unpaired_msa, paired_msa,
                                     template_features, is_complex, model_type)
-        pkl_path =  str(result_dir.joinpath("features.pkl.gz"))
+        pkl_path =  str(result_dir.joinpath(f"{jobid}/features.pkl.gz"))
         
         pickle.dump(feature_dict, gzip.open(pkl_path, 'wb'), protocol=4)
         print(f"features.pkl.gz file saved into {pkl_path}")
