@@ -1207,6 +1207,7 @@ def run_mmf_MSAFt(query_sequence, result_dir, jobname="env", msa_mode="mmseqs2_u
 
 if __name__ == "__main__":
     query_sequence = 'MPKIIEAIYENGVFKPLQKVDLKEGE'
+    query_sequence = sys.argv[1]
     result_dir="/home/xukui/jobs/"
     jobname = ""
     run_mmf_MSAFt(query_sequence, result_dir, jobname)

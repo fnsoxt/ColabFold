@@ -44,6 +44,23 @@ alphabet_list = list(ascii_uppercase+ascii_lowercase)
 
 aatypes = set('ACDEFGHIKLMNPQRSTVWY')
 
+import hashlib
+import base64
+def gen_jobid(r):
+  # 创建 SHA224 哈希对象
+  h = hashlib.sha224()
+  # 将查询字符串和模式写入哈希对象
+  h.update(r['query'].encode('utf-8'))
+  h.update(r['Mode'].encode('utf-8'))
+  # 对数据库列表进行排序
+  database = sorted(r['Database'])
+  # 将排序后的数据库元素写入哈希对象
+  for value in database:
+      h.update(value.encode('utf-8'))
+  # 获取哈希结果的字节串
+  bs = h.digest()
+  # 使用 URL 安全的 Base64 编码将字节串转换为字符串并返回
+  return base64.urlsafe_b64encode(bs).decode('utf-8').rstrip('=')
 
 ###########################################
 # control gpu/cpu memory usage
@@ -339,24 +356,6 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
                 user_agent: str = "") -> Tuple[List[str], List[str]]:
   submission_endpoint = "ticket/pair" if use_pairing else "ticket/msa"
 
-  import hashlib
-  import base64
-  def gen_jobid(r):
-    # 创建 SHA224 哈希对象
-    h = hashlib.sha224()
-    # 将查询字符串和模式写入哈希对象
-    h.update(r['query'].encode('utf-8'))
-    h.update(r['Mode'].encode('utf-8'))
-    # 对数据库列表进行排序
-    database = sorted(r['Database'])
-    # 将排序后的数据库元素写入哈希对象
-    for value in database:
-        h.update(value.encode('utf-8'))
-    # 获取哈希结果的字节串
-    bs = h.digest()
-    # 使用 URL 安全的 Base64 编码将字节串转换为字符串并返回
-    return base64.urlsafe_b64encode(bs).decode('utf-8').rstrip('=')
-
   headers = {}
   N = 101
   # process input x
@@ -394,6 +393,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
   request = json.dumps({"q":query, "mode":mode}, separators=(',', ':'))
   # 调用脚本执行文件生成
   command = f"../msaserver/msa-server -cli -config ../msaserver/config.json -request {request}"
+  print(command)
   process = subprocess.run(command.split(), cwd=prefix, capture_output=True, text=True, shell=False)
   if process.returncode != 0:
     logger.error(f"command failed, {process.stderr}")
@@ -426,6 +426,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
       templates[M].append(pdb)
       #if len(templates[M]) <= 20:
       #  print(f"{int(M)-N}\t{pdb}\t{qid}\t{e_value}")
+    print(templates)
 
     template_paths = {}
     for k,TMPL in templates.items():
@@ -436,6 +437,7 @@ def run_mmseqs2_sync(x, prefix, use_env=True, use_filter=True,
         print("path:%s,name:%s" % (TMPL_PATH, TMPL_LINE))
         # 调用脚本执行生成template
         command = f"{prefix}/../msaserver/msa-server -config {prefix}/../msaserver/config.json -template -name {TMPL_LINE}"
+        print(command)
         process = subprocess.run(command.split(), cwd=TMPL_PATH, capture_output=True, text=True, shell=False)
         if process.returncode != 0:
           logger.error(f"command failed, {process.stderr}")
